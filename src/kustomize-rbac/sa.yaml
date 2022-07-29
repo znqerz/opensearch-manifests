@@ -1,0 +1,6 @@
+---
+# Source: opensearch/charts/opensearch/templates/serviceaccount.yaml
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: "sa"

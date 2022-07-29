@@ -1,0 +1,98 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "data-prepper.fullname" . }}
+  labels:
+    {{- include "data-prepper.labels" . | nindent 4 }}
+spec:
+  {{- if not .Values.autoscaling.enabled }}
+  replicas: {{ .Values.replicaCount }}
+  {{- end }}
+  selector:
+    matchLabels:
+      {{- include "data-prepper.selectorLabels" . | nindent 6 }}
+  template:
+    metadata:
+      {{- with .Values.podAnnotations }}
+      annotations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      labels:
+        {{- include "data-prepper.selectorLabels" . | nindent 8 }}
+    spec:
+      {{- with .Values.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      serviceAccountName: {{ include "data-prepper.serviceAccountName" . }}
+      securityContext:
+        {{- toYaml .Values.podSecurityContext | nindent 8 }}
+      containers:
+        - name: {{ .Chart.Name }}
+          securityContext:
+            {{- toYaml .Values.securityContext | nindent 12 }}
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          args:
+            - java
+            - -jar
+            - /usr/share/data-prepper/data-prepper.jar
+            - /usr/share/data-prepper/pipelines.yaml
+            - /usr/share/data-prepper/data-prepper-config.yaml
+          ports:
+            - containerPort: 21890
+              name: otlp
+          livenessProbe:
+            tcpSocket:
+              port: otlp
+            initialDelaySeconds: 60
+            periodSeconds: 60
+          resources:
+            {{- toYaml .Values.resources | nindent 12 }}
+          volumeMounts:
+            - name: data-prepper-pipelines
+              mountPath: /usr/share/data-prepper/pipelines.yaml
+              subPath: pipelines.yaml
+            - name: data-prepper-config
+              mountPath: /usr/share/data-prepper/data-prepper-config.yaml
+              subPath: data-prepper-config.yaml
+            - name: certificates
+              mountPath: /usr/share/data-prepper/certs/root-ca.pem
+              subPath: ca.crt
+            - name: certificates
+              mountPath: /usr/share/data-prepper/certs/server.key
+              subPath: tls.key
+            - name: certificates
+              mountPath: /usr/share/data-prepper/certs/server.crt
+              subPath: tls.crt
+          env:
+            - name: JAVA_OPTS
+              value: "{{ .Values.dataPrepperJavaOpts }}"
+      {{- with .Values.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      volumes:
+      {{- range .Values.secretMounts }}
+        - name: {{ .name | required "secretMount .name is required" }}
+          secret:
+            secretName: {{ .secretName | required "secretMount .secretName is required" }}
+            {{- if .defaultMode }}
+            defaultMode: {{ .defaultMode }}
+            {{- end }}
+      {{- end }}
+        - name: data-prepper-config
+          configMap:
+            name: {{ .Release.Name }}-data-prepper
+        - name: data-prepper-pipelines
+          secret:
+            secretName: {{ .Release.Name }}-data-prepper-http
+      

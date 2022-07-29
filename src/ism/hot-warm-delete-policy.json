@@ -1,0 +1,59 @@
+{
+  "id": "security_auditlog_ism_policy",
+  "seqNo": 0,
+  "primaryTerm": 1,
+  "policy": {
+    "policy_id": "security_auditlog_ism_policy",
+    "description": "a hot-warm-cold-delete workflow",
+    "last_updated_time": 1652339857944,
+    "schema_version": 13,
+    "error_notification": null,
+    "default_state": "hot",
+    "states": [
+      {
+        "name": "hot",
+        "actions": [
+          {
+            "retry": {
+              "count": 3,
+              "backoff": "exponential",
+              "delay": "1m"
+            },
+            "read_write": {}
+          }
+        ],
+        "transitions": [
+          {
+            "state_name": "delete",
+            "conditions": {
+              "min_index_age": "1d"
+            }
+          }
+        ]
+      },
+      {
+        "name": "delete",
+        "actions": [
+          {
+            "retry": {
+              "count": 3,
+              "backoff": "exponential",
+              "delay": "1m"
+            },
+            "delete": {}
+          }
+        ],
+        "transitions": []
+      }
+    ],
+    "ism_template": [
+      {
+        "index_patterns": [
+          "security-auditlog-*"
+        ],
+        "priority": 100,
+        "last_updated_time": 1652339857943
+      }
+    ]
+  }
+}

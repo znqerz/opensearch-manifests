@@ -1,0 +1,58 @@
+PUT _index_template/nginx-ingress-template
+{
+   "index_patterns": [
+      "nginx-ingress-*"
+
+   ],
+   "template": {
+    "settings": {
+      "number_of_replicas": 1,
+      "refresh_interval": "30s"
+    },
+    "mappings": {
+      "properties": {
+        "agent" : {
+          "norms": false,
+          "type" : "text"
+        },
+        "code": {
+          "type":  "keyword",
+          "ignore_above" : 256
+        },
+        "host" : {
+          "norms": false,
+          "type" : "text"
+        },
+        "method" : {
+          "type" : "keyword",
+          "ignore_above" : 256
+        },
+        "path": {
+           "norms": false,
+          "type" : "text",
+          "fields" : {
+            "keyword" : {
+              "type" : "keyword",
+              "ignore_above" : 256
+            }
+          }
+        },
+        "referer": {
+          "norms": false,
+          "type" : "text"
+        },
+        "remote": {
+          "type" : "keyword",
+          "ignore_above" : 256
+        },
+        "size": {
+          "type": "long"
+        },
+        "user": {
+           "type" : "keyword",
+           "ignore_above" : 256
+        }
+      }
+    }
+   }
+}

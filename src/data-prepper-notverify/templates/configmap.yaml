@@ -1,0 +1,10 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ .Release.Name }}-data-prepper
+  labels: 
+    {{- include "data-prepper.labels" . | nindent 4 }}
+data:
+  data-prepper-config.yaml: |-
+    ssl: false
+    serverPort: 21890

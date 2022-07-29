@@ -1,0 +1,89 @@
+{
+  "policy_id": "security_auditlog_ism_policy",
+  "description": " a hot-warm-cold-delete workflow.",
+  "error_notification": null,
+  "default_state": "hot",
+  "states": [
+    {
+      "name": "hot",
+      "actions": [
+        {
+          "rollover": {
+            "min_doc_count": 200,
+            "min_index_age": "16h"
+          }
+        },
+        {
+          "read_write": {}
+        }
+      ],
+      "transitions": [
+        {
+          "state_name": "warm",
+          "conditions": {
+            "min_index_age": "12h"
+          }
+        }
+      ]
+    },
+    {
+      "name": "warm",
+      "actions": [
+        {
+          "timeout": "2h",
+          "retry": {
+            "count": 5,
+            "backoff": "exponential",
+            "delay": "15m"
+          }
+        }
+      ],
+      "transitions": [
+        {
+          "state_name": "cold",
+          "conditions": {
+            "min_index_age": "10h"
+          }
+        }
+      ]
+    },
+    {
+      "name": "cold",
+      "actions": [
+        {
+          "cold_migration": {
+            "start_time": null,
+            "end_time": null,
+            "timestamp_field": "@timestamp",
+            "ignore": "none"
+          }
+        }
+      ],
+      "transitions": [
+        {
+          "state_name": "delete",
+          "conditions": {
+            "min_index_age": "1d"
+          }
+        }
+      ]
+    },
+    {
+      "name": "delete",
+      "actions": [
+        {
+          "cold_delete": {}
+        }
+      ],
+      "transitions": []
+    }
+  ],
+  "ism_template": [
+    {
+      "index_patterns": [
+        "security-auditlog-*"
+      ],
+      "priority": 100
+    }
+  ]
+}

@@ -1,0 +1,15 @@
+---
+# Source: opensearch/charts/opensearch/templates/role.yaml
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: "cluster-role"
+rules:
+  - apiGroups:
+      - extensions
+    resources:
+      - podsecuritypolicies
+    resourceNames:
+      - "opensearch-cluster-master"
+    verbs:
+      - use

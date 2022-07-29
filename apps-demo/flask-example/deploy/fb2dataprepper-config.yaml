@@ -1,0 +1,41 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: demo-fb-config
+  labels:
+    app.kubernetes.io/name: demo-fb-config
+    app.kubernetes.io/managed-by: kustomize
+data:
+  fluent-bit.conf: |
+    [SERVICE]
+      Flush         5
+      Log_Level     debug
+      Daemon        off
+      Parsers_File  parsers.conf
+
+    @INCLUDE input.conf
+    @INCLUDE output.conf
+
+  input.conf: |
+    [INPUT]
+      Name              tail
+      Tag               ${FLUENT_TAG}
+      Path              /mnt/log/app_log.log
+      Parser            wsgi
+      DB                /var/log/flb_kube.db
+      Mem_Buf_Limit     5MB
+      Skip_Long_Lines   On
+      Refresh_Interval  10
+
+  output.conf: |
+    [OUTPUT]
+      Name            http
+      Match           *
+      Host            ${FLUENT_OPENSEARCH_HOST}
+      Port            21890
+      URI             /log/ingest
+      Format          json
+      HTTP_User       ${FLUENT_OPENSEARCH_USER}
+      HTTP_Passwd     ${FLUENT_OPENSEARCH_PASSWORD}
+      tls             Off
+      header_tag      ${FLUENT_TAG}

@@ -1,0 +1,15 @@
+apiVersion: operator.victoriametrics.com/v1beta1
+kind: VMPodScrape
+metadata:
+  name: flask-example-podscrape
+spec:
+  namespaceSelector:
+    any: true
+  podMetricsEndpoints:
+    - port: http
+      path: /metrics
+      scheme: http
+      interval: 30s
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: demo

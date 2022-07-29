@@ -1,0 +1,69 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: demo-fb-config
+  labels:
+    app.kubernetes.io/name: demo-fb-config
+    app.kubernetes.io/managed-by: kustomize
+data:
+  fluent-bit.conf: |
+    [SERVICE]
+      Flush         1
+      Log_Level     debug
+      Daemon        off
+      Parsers_File  parsers.conf
+
+    @INCLUDE input.conf
+    @INCLUDE filter.conf
+    @INCLUDE filter-grep.conf
+    @INCLUDE output.conf
+
+  input.conf: |
+    [INPUT]
+      Name              tail
+      Tag               ${FLUENT_TAG}
+      Path              /mnt/log/app_log.log
+      DB                /var/log/flb_kube.db
+      Mem_Buf_Limit     5MB
+      Skip_Long_Lines   On
+      Refresh_Interval  10
+      Parser            json
+
+  output.conf: |
+    [OUTPUT]
+      Name            opensearch
+      Match           ${FLUENT_TAG}
+      Host            ${FLUENT_OPENSEARCH_HOST}
+      Port            ${FLUENT_OPENSEARCH_PORT}
+      HTTP_User       ${FLUENT_OPENSEARCH_USER}
+      HTTP_Passwd     ${FLUENT_OPENSEARCH_PASSWORD}
+      Logstash_Format On
+      Logstash_Prefix ${FLUENT_OPENSEARCH_PREFIX}
+      Retry_Limit     False
+      tls             On
+      tls.verify      Off
+      Type            logs
+      Include_Tag_Key On
+      Tag_Key         tag
+
+  parsers.conf: |
+    [PARSER]
+      Name        json
+      Format      json
+      Time_Key    time
+      Time_Format %Y-%m-%d %H:%M:%S
+      Decode_Field_as escaped_utf8 log
+      Decode_Field_as json log
+
+  filter.conf: |
+    [FILTER]
+      Name parser
+      Match *
+      Key_Name log
+      Parser json
+
+  filter-grep.conf: |
+    [FILTER]
+      Name    grep
+      Match   *
+      Regex   message .*HTTP.*

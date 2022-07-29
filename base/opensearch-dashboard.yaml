@@ -1,0 +1,144 @@
+---
+# Source: opensearch-dashboards/charts/opensearch-dashboards/templates/configmap.yaml
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: demo-opensearch-dashboard-config
+  labels: 
+    helm.sh/chart: opensearch-dashboards-2.2.2
+    app.kubernetes.io/name: opensearch-dashboards
+    app.kubernetes.io/instance: demo
+    app.kubernetes.io/version: "2.1.0"
+    app.kubernetes.io/managed-by: Helm
+data:
+  opensearch_dashboards.yml: |
+    ---
+    # Copyright OpenSearch Contributors
+    # SPDX-License-Identifier: Apache-2.0
+    
+    # Description:
+    # Default configuration for OpenSearch Dashboards
+    # opensearch.ssl.verificationMode: none
+    server.host: '0'
+    opensearch.hosts: [https://localhost:9200]
+    opensearch.username: kibanaserver
+    opensearch.password: kibanaserver
+    opensearch.requestHeadersWhitelist: [authorization, securitytenant]
+    
+    opensearch_security.multitenancy.enabled: true
+    opensearch_security.multitenancy.tenants.preferred: [Private, Global]
+    opensearch_security.readonly_mode.roles: [kibana_read_only]
+    # Use this setting if you are running opensearch-dashboards without https
+    opensearch_security.cookie.secure: false
+    
+    # append configs
+    # config opensearch dashboard tsl feature
+    server.ssl.enabled: false    
+    server.ssl.key: /usr/share/opensearch-dashboards/certs/tls.key
+    server.ssl.certificate: /usr/share/opensearch-dashboards/certs/tls.crt
+    
+    opensearch.ssl.verificationMode: certificate
+    opensearch.ssl.certificateAuthorities: ["/usr/share/opensearch-dashboards/certs/ca/ca.crt"]
+    opensearch_security.multitenancy.tenants.enable_global: true
+    opensearch_security.multitenancy.tenants.enable_private: true
+---
+# Source: opensearch-dashboards/charts/opensearch-dashboards/templates/service.yaml
+apiVersion: v1
+kind: Service
+metadata:
+  name: demo-opensearch-dashboard
+  labels:
+    helm.sh/chart: opensearch-dashboards-2.2.2
+    app.kubernetes.io/name: opensearch-dashboards
+    app.kubernetes.io/instance: demo
+    app.kubernetes.io/version: "2.1.0"
+    app.kubernetes.io/managed-by: Helm
+spec:
+  type: ClusterIP
+  ports:
+  - port: 5601
+    protocol: TCP
+    name: http
+    targetPort: 5601
+  selector:
+    app: opensearch-dashboards
+    release: "demo"
+---
+# Source: opensearch-dashboards/charts/opensearch-dashboards/templates/deployment.yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: demo-opensearch-dashboard
+  labels:
+    helm.sh/chart: opensearch-dashboards-2.2.2
+    app.kubernetes.io/name: opensearch-dashboards
+    app.kubernetes.io/instance: demo
+    app.kubernetes.io/version: "2.1.0"
+    app.kubernetes.io/managed-by: Helm
+spec:
+  replicas: 1
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      app: opensearch-dashboards
+      release: "demo"
+  template:
+    metadata:
+      labels:
+        app: opensearch-dashboards
+        release: "demo"
+      annotations:
+        configchecksum: a99674edc5785a722cf21e32b1978b08e6b3857111c422755f5ca23b3e2d170
+    spec:
+      securityContext:
+        {}
+      serviceAccountName: opensearch-sa
+      volumes:
+        - name: opensearch-certs
+          secret:
+            secretName: opensearch-dashboard-tls-key-pair
+        - name: server-cert
+          secret:
+            secretName: opensearch-tls-key-pair
+        - name: config
+          configMap:
+            name: demo-opensearch-dashboard-config
+      containers:
+      - name: dashboards
+        securityContext:
+          capabilities:
+            drop:
+            - ALL
+          runAsNonRoot: true
+          runAsUser: 1000
+        image: "opensearchproject/opensearch-dashboards:2.1.0"
+        imagePullPolicy: "IfNotPresent"
+        env:
+        - name: OPENSEARCH_HOSTS
+          value: "https://demo-opensearch-cluster-master:9200"
+        - name: SERVER_HOST
+          value: "0.0.0.0"
+        - name: ELASTIC_PASSWORD
+          value: ieZoo4Xie1Ahl8id
+        - name: NODE_TLS_REJECT_UNAUTHORIZED
+          value: "0"
+        ports:
+        - containerPort: 5601
+          name: http
+          protocol: TCP
+        resources:
+          limits:
+            cpu: 100m
+            memory: 512M
+          requests:
+            cpu: 100m
+            memory: 512M
+        volumeMounts:
+          - name: opensearch-certs
+            mountPath: /usr/share/opensearch-dashboards/certs
+          - name: server-cert
+            mountPath: /usr/share/opensearch-dashboards/certs/ca
+          - name: config
+            mountPath: /usr/share/opensearch-dashboards/config/opensearch_dashboards.yml
+            subPath: opensearch_dashboards.yml

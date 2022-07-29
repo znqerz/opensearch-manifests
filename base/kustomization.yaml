@@ -1,0 +1,19 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+namespace: opensearch-system
+resources:
+  - opensearch.yaml
+  - opensearch-dashboard.yaml
+
+bases:
+  - ../src/kustomize-certs
+  - ../src/kustomize-rbac
+
+patches:
+  - target:
+      name: demo-opensearch.*
+    patch: |-
+      - op: add
+        path: /metadata/annotations
+        value:
+          argocd.argoproj.io/sync-wave: "90"

@@ -1,0 +1,12 @@
+Flask==2.1.2
+prometheus_flask_exporter==0.20.1
+opentelemetry-api
+opentelemetry-sdk
+opentelemetry-instrumentation
+opentelemetry-instrumentation-requests
+opentelemetry-instrumentation-wsgi
+opentelemetry-instrumentation-flask
+opentelemetry-exporter-jaeger
+opentelemetry-exporter-otlp-proto-grpc
+opentelemetry-exporter-otlp-proto-http
+requests

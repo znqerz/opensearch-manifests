@@ -1,0 +1,19 @@
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: flask-example-servicemonitor
+  labels:
+    team: demo1-flask
+    app.kubernetes.io/name: demo
+    release: prometheus
+spec:
+  namespaceSelector:
+    any: true
+  endpoints:
+    - port: http
+      path: /metrics
+      scheme: http
+      interval: 30s
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: demo

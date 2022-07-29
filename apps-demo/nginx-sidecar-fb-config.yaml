@@ -1,0 +1,60 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: nginx-fb-config
+  labels:
+    app.kubernetes.io/name: nginx-fb-config
+    app.kubernetes.io/managed-by: kustomize
+data:
+  fluent-bit.conf: |
+    [SERVICE]
+      Flush         1
+      Log_Level     debug
+      Daemon        off
+      Parsers_File  parsers.conf
+
+    @INCLUDE input.conf
+    @INCLUDE filter.conf
+    @INCLUDE output.conf
+
+  input.conf: |
+    [INPUT]
+      Name              tail
+      Tag               ${FLUENT_TAG}
+      Path              /mnt/log/access.log
+      DB                /var/log/flb_kube.db
+      Parser            nginx
+      Mem_Buf_Limit     5MB
+      Skip_Long_Lines   On
+      Refresh_Interval  10
+
+  output.conf: |
+    [OUTPUT]
+      Name            opensearch
+      Match           ${FLUENT_TAG}
+      Host            ${FLUENT_OPENSEARCH_HOST}
+      Port            ${FLUENT_OPENSEARCH_PORT}
+      HTTP_User       ${FLUENT_OPENSEARCH_USER}
+      HTTP_Passwd     ${FLUENT_OPENSEARCH_PASSWORD}
+      Logstash_Format On
+      Logstash_Prefix ${FLUENT_OPENSEARCH_PREFIX}
+      Retry_Limit     False
+      tls             On
+      tls.verify      Off
+      Type            logs
+      Include_Tag_Key On
+      Tag_Key         tag
+
+  parsers.conf: |
+    [PARSER]
+      Name   nginx
+      Format regex
+      Regex ^(?<remote>[^ ]*) (?<host>[^ ]*) (?<user>[^ ]*) \[(?<time>[^\]]*)\] "(?<method>\S+)(?: +(?<path>[^\"]*?)(?: +\S*)?)?" (?<code>[^ ]*) (?<size>[^ ]*)(?: "(?<referer>[^\"]*)" "(?<agent>[^\"]*)")
+      Time_Key time
+      Time_Format %d/%b/%Y:%H:%M:%S %z
+
+  filter.conf: |
+    [FILTER]
+      Name    grep
+      Match   ${FLUENT_TAG}
+      Regex   path .*crd.*

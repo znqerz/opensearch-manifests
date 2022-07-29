@@ -1,0 +1,6 @@
+*/*/all.yaml
+.vscode
+*/*/charts
+.DS_Store
+*/*-secret.yaml
+*/*/.DS_Store
