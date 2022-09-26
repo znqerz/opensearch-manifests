@@ -3,10 +3,28 @@ kind: Kustomization
 namespace: demo2
 
 resources:
-- python-sidecar-fb-forward-config.yaml
-- deployment.yaml
-  # - prom-servicemonitor.yaml
+  # - python-sidecar-fb-forward-config.yaml
+  - deployment.yaml
+    # - prom-servicemonitor.yaml
 images:
-- name: demo
-  newName: flask-example-demo
-  newTag: otlp-agent-v2
+  - name: demo
+    newName: flask-example-demo
+    newTag: otlp-agent-v2
+
+configMapGenerator:
+  - name: demo-fb-config
+    files:
+      - ./confs/service.conf
+      - ./confs/output.conf
+      - ./confs/input.conf
+      - ./confs/parser.conf
+      - ./confs/filter.conf
+# generatorOptions:
+#   disableNameSuffixHash: true
+
+# vars:
+#   - name: demo-fb-config
+#     objref:
+#       kind: ConfigMap
+#       name: demo-fb-config
+#       apiVersion: v1

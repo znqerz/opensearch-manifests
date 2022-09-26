@@ -27,7 +27,7 @@ data:
       Mem_Buf_Limit     5MB
       Skip_Long_Lines   On
       Refresh_Interval  10
-
+ 
   output.conf: |
     [OUTPUT]
       Name          forward

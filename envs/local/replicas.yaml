@@ -1,6 +1,6 @@
 apiVersion: apps/v1
 kind: StatefulSet
 metadata:
-  name: demo-opensearch-cluster-master
+  name: opensearch-cluster-master
 spec:
   replicas: 1

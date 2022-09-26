@@ -4,8 +4,8 @@ kind: Kustomization
 helmCharts:
   - name: opensearch
     namespace: opensearch-system
-    includeCRDs: false
+    includeCRDs: true
     releaseName: opensearch
-    version: 2.4.1
+    version: 2.5.1
     valuesFile: values.yaml
     repo: https://opensearch-project.github.io/helm-charts/

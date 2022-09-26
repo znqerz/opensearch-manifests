@@ -162,3 +162,114 @@ config:
 [certs via cert-manager & Let's Encrypt](https://eliatra.com/blog/opensearch-with-cert-manager-part-3-lets-encrypt/)
 
 [good example for using cert-manager from github issue](https://github.com/opensearch-project/helm-charts/issues/115)
+
+```yaml
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+configMapGenerator:
+# generate a ConfigMap named my-java-server-props-<some-hash> where each file
+# in the list appears as a data entry (keyed by base filename).
+- name: my-java-server-props
+  files:
+  - application.properties
+  - more.properties
+# generate a ConfigMap named my-java-server-env-vars-<some-hash> where each literal
+# in the list appears as a data entry (keyed by literal key).
+- name: my-java-server-env-vars
+  literals:    
+  - JAVA_HOME=/opt/java/jdk
+  - JAVA_TOOL_OPTIONS=-agentlib:hprof
+# generate a ConfigMap named my-system-env-<some-hash> where each key/value pair in the
+# env.txt appears as a data entry (separated by \n).
+- name: my-system-env
+  env: env.txt
+```
+
+```yaml
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+secretGenerator:
+  # generate a tls Secret
+- name: app-tls
+  files:
+    - secret/tls.cert
+    - secret/tls.key
+  type: "kubernetes.io/tls"
+- name: env_file_secret
+  # env is a path to a file to read lines of key=val
+  # you can only specify one env file per secret.
+  env: env.txt
+  type: Opaque
+```
+
+```yaml
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+namespace: nginx
+
+bases:
+  - ../base-folder
+
+resources:
+  - https://raw.githubusercontent.com/kubernetes/ingress-nginx/main/deploy/static/provider/kind/deploy.yaml
+  - ./namespace.yaml
+```
+
+```yaml
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+namePrefix: "demo-prefix-"
+nameSuffix: "-demo-suffix"
+
+namespace: "my-app-namespace"
+
+commonAnnotations:
+  annotationKey1: "annotationValue1"
+
+commonLabels:
+  labelKey1: "labelValue1"
+
+images:
+  - name: postgres
+    newName: my-registry/my-postgres
+    newTag: v1
+
+vars:
+  - name: SOME_SECRET_NAME
+    objref:
+      kind: Secret
+      name: my-secret
+      apiVersion: v1
+  - name: MY_SERVICE_NAME
+    objref:
+      kind: Service
+      name: my-service
+      apiVersion: v1
+    fieldref:
+      fieldpath: metadata.name
+  - name: ANOTHER_DEPLOYMENTS_POD_RESTART_POLICY
+    objref:
+      kind: Deployment
+      name: my-deployment
+      apiVersion: apps/v1
+    fieldref:
+      fieldpath: spec.template.spec.restartPolicy
+```
+
+```yaml
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+generatorOptions:
+  # labels to add to all generated resources
+  labels:
+    kustomize.generated.resources: somevalue
+  # annotations to add to all generated resources
+  annotations:
+    kustomize.generated.resource: somevalue
+  # disableNameSuffixHash is true disables the default behavior of adding a
+  # suffix to the names of generated resources that is a hash of
+  # the resource contents.
+  disableNameSuffixHash: true
+```
