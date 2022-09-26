@@ -4,3 +4,5 @@ namespace: ingress-nginx
 
 resources:
   - nginx-sidecar-fb-config.yaml
+
+

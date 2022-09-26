@@ -1,0 +1,21 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+namespace: opensearch-system
+
+resources:
+  - deployment.yaml
+  - service.yaml
+
+# patchesStrategicMerge:
+#   - limits.yaml
+#   - replicas.yaml
+#   - volumes.yaml
+
+configMapGenerator:
+  - name: data-prepper-config
+    files:
+      - data-prepper-wait-for-os-and-start.sh
+      - log-ssl.yml
+# generatorOptions:
+#   disableNameSuffixHash: true

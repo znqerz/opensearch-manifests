@@ -1,0 +1,23 @@
+log-pipeline:
+  delay: "100"
+  source:
+    http:
+      # Explicitly disable SSL
+      ssl: false
+      # Explicitly disable authentication
+      authentication:
+        unauthenticated:
+      # The default port that will listen for incoming logs
+      port: 2021
+  processor:
+    - grok:
+        match:
+          log: ["%{COMMONAPACHELOG}"]
+  sink:
+    - stdout:
+    # - opensearch:
+    #     hosts: ["https://opensearch-cluster-master:9200"]
+    #     insecure: true
+    #     username: "admin"
+    #     password: "admin"
+    #     index: demo_logs
