@@ -1,17 +1,20 @@
 apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization
+
 namespace: opensearch-system
+
 resources:
-  - opensearch.yaml
-  - opensearch-dashboard.yaml
+  - ./namespace.yaml
 
 bases:
-  - ../src/kustomize-certs
-  - ../src/kustomize-rbac
+  - ./opensearch
+  - ./opensearch-dashboards
+  - ./kustomize-certs
+  - ./kustomize-rbac
 
 patches:
   - target:
-      name: demo-opensearch.*
+      name: opensearch.*
     patch: |-
       - op: add
         path: /metadata/annotations
