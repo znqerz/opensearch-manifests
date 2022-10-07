@@ -6,6 +6,6 @@ helmCharts:
     namespace: opensearch-system
     includeCRDs: true
     releaseName: opensearch
-    version: 2.5.1
+    version: 2.6.2
     valuesFile: values.yaml
     repo: https://opensearch-project.github.io/helm-charts/

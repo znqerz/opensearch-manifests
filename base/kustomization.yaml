@@ -20,3 +20,31 @@ patches:
         path: /metadata/annotations
         value:
           argocd.argoproj.io/sync-wave: "90"
+
+vars:
+  - name: SERVICE_NAMESPACE # namespace of the service
+    objref:
+      kind: Service
+      version: v1
+      name: opensearch-cluster-master
+    fieldref:
+      fieldpath: metadata.namespace
+  - name: SERVICE_NAME
+    objref:
+      kind: Service
+      version: v1
+      name: opensearch-cluster-master
+  - name: DASHBOARD_SERVICE_NAME
+    objref:
+      kind: Service
+      version: v1
+      name: opensearch-dashboard
+  - name: DASHBOARD_SERVICE_NAMESPACE
+    objref:
+      kind: Service
+      version: v1
+      name: opensearch-dashboard
+    fieldref:
+      fieldpath: metadata.namespace
+generatorOptions:
+  disableNameSuffixHash: true

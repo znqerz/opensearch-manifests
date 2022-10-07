@@ -35,20 +35,18 @@ rbac:
 # the X-Pack license
 secretMounts:
   - name: opensearch-certs
-    secretName: opensearch-dashboard-tls-key-pair
+    secretName: opensearch-dashboard-ca-key-pair
     path: /usr/share/opensearch-dashboards/certs
   # - name: ca-certs
   #   secretName: opensearch-ca-key-pair
   #   path: /usr/share/opensearch-dashboards/certs/ca
   - name: server-cert
-    secretName: opensearch-tls-key-pair
+    secretName: opensearch-ca-key-pair
     path: /usr/share/opensearch-dashboards/certs/ca
 
 podAnnotations: {}
 
 extraEnvs:
-  - name: ELASTIC_PASSWORD
-    value: "ieZoo4Xie1Ahl8id"
   - name: NODE_TLS_REJECT_UNAUTHORIZED
     value: "0"
 

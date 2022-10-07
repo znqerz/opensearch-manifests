@@ -1,7 +1,0 @@
-- op: replace
-  path: /spec/commonName
-  value: opensearch-cluster-master.opensearch-system.svc.cluster.local
-- op: replace
-  path: /spec/dnsNames
-  value:
-    - opensearch-cluster-master.opensearch-system.svc.cluster.local

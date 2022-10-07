@@ -116,7 +116,7 @@ envFrom: []
 # the X-Pack license
 secretMounts:
   - name: opensearch-certs
-    secretName: opensearch-tls-key-pair
+    secretName: opensearch-ca-key-pair
     path: /usr/share/opensearch/config/certs
 
 hostAliases: []

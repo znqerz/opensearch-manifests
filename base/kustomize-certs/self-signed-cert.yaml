@@ -1,7 +1,7 @@
 apiVersion: cert-manager.io/v1
 kind: Issuer
 metadata:
-  name: selfsigned
+  name: selfsigned-issuer
 spec:
   selfSigned: {}
 ---
@@ -9,25 +9,47 @@ apiVersion: cert-manager.io/v1
 kind: Certificate
 metadata:
   name: ca-cert
-  namespace: cert-manager
 spec:
   isCA: true
   duration: 43800h # 5 years
-  commonName: not-important.io
   secretName: opensearch-ca-key-pair
   privateKey:
     algorithm: RSA
     encoding: PKCS8
     size: 2948
+  commonName: $(SERVICE_NAME).$(SERVICE_NAMESPACE).svc
+  dnsNames:
+    - $(SERVICE_NAME).$(SERVICE_NAMESPACE).svc
+    - $(SERVICE_NAME).$(SERVICE_NAMESPACE).svc.cluster.local
   issuerRef:
-    name: opensearch-selfsigned
+    name: selfsigned-issuer
     kind: Issuer
     group: cert-manager.io
 ---
 apiVersion: cert-manager.io/v1
 kind: Issuer
 metadata:
-  name: issuer-from-ca
+  name: dashboard-selfsigned-issuer
 spec:
-  ca:
-    secretName: opensearch-ca-key-pair
+  selfSigned: {}
+---
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: dashboard-ca-cert
+spec:
+  isCA: true
+  duration: 43800h # 5 years
+  secretName: opensearch-dashboard-ca-key-pair
+  commonName: $(DASHBOARD_SERVICE_NAME).$(DASHBOARD_SERVICE_NAMESPACE).svc
+  privateKey:
+    algorithm: RSA
+    encoding: PKCS8
+    size: 2948
+  dnsNames:
+    - $(DASHBOARD_SERVICE_NAME).$(DASHBOARD_SERVICE_NAMESPACE).svc
+    - $(DASHBOARD_SERVICE_NAME).$(DASHBOARD_SERVICE_NAMESPACE).svc.cluster.local
+  issuerRef:
+    name: dashboard-selfsigned-issuer
+    kind: Issuer
+    group: cert-manager.io
